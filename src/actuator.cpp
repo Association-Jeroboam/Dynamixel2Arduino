@@ -548,10 +548,10 @@ ControlTableItemInfo_t DYNAMIXEL::getControlTableItemInfo(uint16_t model_num, ui
   }
 
   do{
-    item_idx = pgm_read_byte(&p_common_ctable[i].index);
+    item_idx = p_common_ctable[i].index;
     if(item_idx == control_item) {
-      item_info.addr = pgm_read_word(&p_common_ctable[i].addr);
-      item_info.addr_length = pgm_read_byte(&p_common_ctable[i].addr_length);
+      item_info.addr = p_common_ctable[i].addr;
+      item_info.addr_length = p_common_ctable[i].addr_length;
       break;
     }
     i++;
@@ -563,10 +563,10 @@ ControlTableItemInfo_t DYNAMIXEL::getControlTableItemInfo(uint16_t model_num, ui
 
   i = 0;
   do{
-    item_idx = pgm_read_byte(&p_dep_ctable[i].index);
+    item_idx = p_dep_ctable[i].index;
     if(item_idx == control_item) {
-      item_info.addr = pgm_read_word(&p_dep_ctable[i].addr);
-      item_info.addr_length = pgm_read_byte(&p_dep_ctable[i].addr_length);
+      item_info.addr = p_dep_ctable[i].addr;
+      item_info.addr_length = p_dep_ctable[i].addr_length;
       break;
     }
     i++;

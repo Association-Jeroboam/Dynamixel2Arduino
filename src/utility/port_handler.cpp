@@ -20,9 +20,11 @@ void DXLPortHandler::setOpenState(bool state)
 using namespace DYNAMIXEL;
 
 /* SerialPortHandler */
-SerialPortHandler::SerialPortHandler(HardwareSerial& port, const int dir_pin)
+SerialPortHandler::SerialPortHandler(SerialDriver* port, const int dir_pin)
  : DXLPortHandler(), port_(port), dir_pin_(dir_pin), baud_(57600)
-{}
+{
+
+}
 
 void SerialPortHandler::begin()
 {
@@ -31,137 +33,64 @@ void SerialPortHandler::begin()
 
 void SerialPortHandler::begin(unsigned long baud)
 {
-#if defined(ARDUINO_OpenCM904)
-  if(port_ == Serial1 && getOpenState() == false){
-    Serial1.setDxlMode(true);
-  }
-#elif defined(ARDUINO_OpenCR)
-  if(port_ == Serial3 && getOpenState() == false){
-    pinMode(BDPIN_DXL_PWR_EN, OUTPUT);
-    digitalWrite(BDPIN_DXL_PWR_EN, HIGH);
-  }
-  delay(300); // Wait for the DYNAMIXEL to power up normally.
-#endif
+    config = (SerialConfig){
+            .speed = baud,
+            .cr1 = 0,
+            .cr2 =USART_CR2_STOP1_BITS,
+            .cr3 = 0,
+    };
 
   baud_ = baud;
-  port_.begin(baud_);
+  sdStart(port_, &config);
   
-  if(dir_pin_ != -1){
-    pinMode(dir_pin_, OUTPUT);
     digitalWrite(dir_pin_, LOW);
     while(digitalRead(dir_pin_) != LOW);
-  }
-
   setOpenState(true);
 }
 
 void SerialPortHandler::end(void)
 {
-#if defined(ARDUINO_OpenCR)
-  if(port_ == Serial3 && getOpenState() == true){
-    digitalWrite(BDPIN_DXL_PWR_EN, LOW);
-  }
-#endif
-  port_.end();
+
+  sdStop(port_);
   setOpenState(false);
 }
 
 int SerialPortHandler::available(void)
 {
-  return port_.available();
+  return 1;
 }
 
 int SerialPortHandler::read()
 {
-  return port_.read();
+  uint8_t data;
+  sdReadTimeout(port_, &data, 1, TIME_IMMEDIATE);
+  return data;
 }
 
 size_t SerialPortHandler::write(uint8_t c)
 {
-  size_t ret = 0;
-  if(dir_pin_ != -1){
+  sdWrite(port_, &c, 1);
+  sdReadTimeout(port_, &c, 1, TIME_IMMEDIATE);
     digitalWrite(dir_pin_, HIGH);
     while(digitalRead(dir_pin_) != HIGH);
-  }
-
-  ret = port_.write(c);
-
-  if(dir_pin_ != -1){
-    port_.flush();
-    digitalWrite(dir_pin_, LOW);
-    while(digitalRead(dir_pin_) != LOW);
-  }
-
-  return ret;
 }
 
-size_t SerialPortHandler::write(uint8_t *buf, size_t len)
-{
-  size_t ret;
-  if(dir_pin_ != -1){
-    digitalWrite(dir_pin_, HIGH);
-    while(digitalRead(dir_pin_) != HIGH);
-  }
-
-  ret = port_.write(buf, len);
-
-  if(dir_pin_ != -1){
-    port_.flush();
     digitalWrite(dir_pin_, LOW);
     while(digitalRead(dir_pin_) != LOW);
-  }
+size_t SerialPortHandler::write(uint8_t *buf, size_t len)
+{
+  sdWrite(port_, buf, len);
+  sdReadTimeout(port_, buf, len, TIME_IMMEDIATE);
+    digitalWrite(dir_pin_, HIGH);
+    while(digitalRead(dir_pin_) != HIGH);
+    digitalWrite(dir_pin_, LOW);
+    while(digitalRead(dir_pin_) != LOW);
 
-  return ret;      
+  return len;
 }
 
 unsigned long SerialPortHandler::getBaud() const
 {
   return baud_;
-}
-
-
-/* USBSerialPortHandler */
-USBSerialPortHandler::USBSerialPortHandler(USB_SERIAL_CLASS& port)
- : DXLPortHandler(), port_(port)
-{}
-
-void USBSerialPortHandler::begin()
-{
-  port_.begin(1000000);
-  setOpenState(true);
-}
-
-void USBSerialPortHandler::end(void)
-{
-  port_.end();
-  setOpenState(false);
-}
-
-int USBSerialPortHandler::available(void)
-{
-  return port_.available();
-}
-
-int USBSerialPortHandler::read()
-{
-  return port_.read();
-}
-
-size_t USBSerialPortHandler::write(uint8_t c)
-{
-  size_t ret = 0;
-
-  ret = port_.write(c);
-
-  return ret;
-}
-
-size_t USBSerialPortHandler::write(uint8_t *buf, size_t len)
-{
-  size_t ret;
-
-  ret = port_.write(buf, len);
-
-  return ret;      
 }
 

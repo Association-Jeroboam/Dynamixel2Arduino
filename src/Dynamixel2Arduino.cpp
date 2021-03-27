@@ -112,7 +112,7 @@ Dynamixel2Arduino::Dynamixel2Arduino(uint16_t packet_buf_size)
   memset(&model_number_idx_, 0xff, sizeof(model_number_idx_));
 }
 
-Dynamixel2Arduino::Dynamixel2Arduino(HardwareSerial& port, int dir_pin, uint16_t packet_buf_size)
+Dynamixel2Arduino::Dynamixel2Arduino(SerialDriver* port, int dir_pin, uint16_t packet_buf_size)
 : Master(2.0, packet_buf_size), model_number_idx_last_index_(0)
 {
   p_dxl_port_ = new SerialPortHandler(port, dir_pin);
@@ -943,7 +943,7 @@ uint16_t Dynamixel2Arduino::getModelNumberFromTable(uint8_t id)
   }
 
   idx = model_number_idx_[id];
-  model_num = (idx < model_number_table_count) ? pgm_read_word(&model_number_table[idx]) : UNREGISTERED_MODEL;
+  model_num = (idx < model_number_table_count) ? model_number_table[idx] : UNREGISTERED_MODEL;
 
   return model_num;
 }
@@ -1530,13 +1530,13 @@ static ItemAndRangeInfo_t getModelDependencyFuncInfo(uint16_t model_num, uint8_t
   }
 
   do{
-    func_idx = pgm_read_byte(&p_common_ctable[i].func_idx);
+    func_idx = p_common_ctable[i].func_idx;
     if(func_idx == func_num) {
-      item_info.item_idx = pgm_read_byte(&p_common_ctable[i].item_idx);
-      item_info.min_value = (int32_t)pgm_read_dword(&p_common_ctable[i].min_value);
-      item_info.max_value = (int32_t)pgm_read_dword(&p_common_ctable[i].max_value);
-      item_info.unit_type = pgm_read_byte(&p_common_ctable[i].unit_type);
-      item_info.unit_value = pgm_read_float(&p_common_ctable[i].unit_value);
+      item_info.item_idx = p_common_ctable[i].item_idx;
+      item_info.min_value = (int32_t)p_common_ctable[i].min_value;
+      item_info.max_value = (int32_t)p_common_ctable[i].max_value;
+      item_info.unit_type = p_common_ctable[i].unit_type;
+      item_info.unit_value = p_common_ctable[i].unit_value;
       break;
     }
     i++;
@@ -1548,13 +1548,13 @@ static ItemAndRangeInfo_t getModelDependencyFuncInfo(uint16_t model_num, uint8_t
 
   i = 0;
   do{
-    func_idx = pgm_read_byte(&p_dep_ctable[i].func_idx);
+    func_idx = p_dep_ctable[i].func_idx;
     if(func_idx == func_num) {
-      item_info.item_idx = pgm_read_byte(&p_dep_ctable[i].item_idx);
-      item_info.min_value = (int32_t)pgm_read_dword(&p_dep_ctable[i].min_value);
-      item_info.max_value = (int32_t)pgm_read_dword(&p_dep_ctable[i].max_value);
-      item_info.unit_type = pgm_read_byte(&p_dep_ctable[i].unit_type);
-      item_info.unit_value = pgm_read_float(&p_dep_ctable[i].unit_value);
+      item_info.item_idx = p_dep_ctable[i].item_idx;
+      item_info.min_value = (int32_t)p_dep_ctable[i].min_value;
+      item_info.max_value = (int32_t)p_dep_ctable[i].max_value;
+      item_info.unit_type = p_dep_ctable[i].unit_type;
+      item_info.unit_value = p_dep_ctable[i].unit_value;
       break;
     }
     i++;

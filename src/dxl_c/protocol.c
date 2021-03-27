@@ -1,5 +1,5 @@
 #include "protocol.h"
-
+#include <stddef.h>
 #if defined(ARDUINO)
   #include <Arduino.h>
   #if !defined(ESP_PLATFORM) && !defined(ARDUINO_ARCH_MBED) && !defined(ARDUINO_ARCH_SAMD)
