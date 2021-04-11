@@ -1027,10 +1027,11 @@ Master::rxStatusPacket(uint8_t* p_param_buf, uint16_t param_buf_cap, uint32_t ti
   err = begin_parse_dxl_packet(&info_rx_packet_, protocol_ver_idx_, p_param_buf, param_buf_cap);
   if(err == DXL_LIB_OK){
     pre_time_ms = millis();
-    while(1) 
+    while(1)
     {
-      if(p_port_->available() > 0){
-        err = parse_dxl_packet(&info_rx_packet_, p_port_->read());
+      uint8_t data;
+      if(p_port_->read(&data, timeout_ms) > 0){
+        err = parse_dxl_packet(&info_rx_packet_, data);
         if(err == DXL_LIB_OK){
           if((protocol_ver_idx_ == 2 && info_rx_packet_.inst_idx == DXL_INST_STATUS)
           || protocol_ver_idx_ == 1){

@@ -112,7 +112,7 @@ Dynamixel2Arduino::Dynamixel2Arduino(uint16_t packet_buf_size)
   memset(&model_number_idx_, 0xff, sizeof(model_number_idx_));
 }
 
-Dynamixel2Arduino::Dynamixel2Arduino(HardwareSerial& port, int dir_pin, uint16_t packet_buf_size)
+Dynamixel2Arduino::Dynamixel2Arduino(SerialDriver* port, int dir_pin, uint16_t packet_buf_size)
 : Master(2.0, packet_buf_size), model_number_idx_last_index_(0)
 {
   p_dxl_port_ = new SerialPortHandler(port, dir_pin);

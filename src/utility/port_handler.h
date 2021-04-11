@@ -17,9 +17,9 @@
 #ifndef DYNAMIXEL_PORT_HANDLER_HPP_
 #define DYNAMIXEL_PORT_HANDLER_HPP_
 
-
 #include <Arduino.h>
-
+#include <ch.hpp>
+#include "hal.h"
 
 class DXLPortHandler
 {
@@ -28,8 +28,7 @@ class DXLPortHandler
     
     virtual void begin() = 0;
     virtual void end() = 0;
-    virtual int available(void) = 0;
-    virtual int read() = 0;
+    virtual int read(uint8_t *, uint32_t) = 0;
     virtual size_t write(uint8_t) = 0;
     virtual size_t write(uint8_t *buf, size_t len) = 0;
     bool getOpenState();
@@ -45,12 +44,11 @@ namespace DYNAMIXEL{
 class SerialPortHandler : public DXLPortHandler
 {
   public:
-    SerialPortHandler(HardwareSerial& port, const int dir_pin = -1);
+    SerialPortHandler(SerialDriver* port, const int dir_pin);
 
     virtual void begin() override;
     virtual void end() override;
-    virtual int available(void) override;
-    virtual int read() override;
+    virtual int read(uint8_t *, uint32_t timeout_ms) override;
     virtual size_t write(uint8_t) override;
     virtual size_t write(uint8_t *buf, size_t len) override;
 
@@ -58,45 +56,12 @@ class SerialPortHandler : public DXLPortHandler
     virtual unsigned long getBaud() const;
 
   private:
-    HardwareSerial& port_;
-    const int dir_pin_;
+    SerialDriver* port_;
+    SerialConfig  config;
+    ioline_t dir_pin_;
     unsigned long baud_;
 };
 
-
-#if defined(__OPENCR__)
-  #define USB_SERIAL_CLASS USBSerial
-#elif defined(__MK20DX128__) || defined(__MK20DX256__)
-  #include <usb_serial.h>  // Teensy 3.0 and 3.1
-  #define USB_SERIAL_CLASS usb_serial_class
-#elif defined(_SAM3XA_)
-  #include <UARTClass.h>  // Arduino Due
-  #define USB_SERIAL_CLASS UARTClass
-#elif defined(ARDUINO_AVR_LEONARDO)
-  // Arduino Leonardo USB Serial Port
-  #define USB_SERIAL_CLASS Serial_
-#elif defined(ARDUINO_CommXEL)
-  #include "USBSerial.h"
-  #define USB_SERIAL_CLASS USBSerial
-#else
-  #define USB_SERIAL_CLASS HardwareSerial
-#endif
-
-class USBSerialPortHandler : public DXLPortHandler
-{
-  public:
-    USBSerialPortHandler(USB_SERIAL_CLASS& port);
-
-    virtual void begin() override;
-    virtual void end() override;
-    virtual int available(void) override;
-    virtual int read() override;
-    virtual size_t write(uint8_t) override;
-    virtual size_t write(uint8_t *buf, size_t len) override;
-
-  private:
-    USB_SERIAL_CLASS& port_;
-};
 
 }//namespace DYNAMIXEL
 
