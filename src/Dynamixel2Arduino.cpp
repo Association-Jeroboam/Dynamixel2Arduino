@@ -15,6 +15,12 @@
 *******************************************************************************/
 
 #include "Dynamixel2Arduino.h"
+#include <cmath>
+#include <ch.hpp>
+#include <hal.h>
+#include "Board.hpp"
+#include "board.h"
+#include "Logging.hpp"
 
 namespace DYNAMIXEL{
 
@@ -920,7 +926,7 @@ Dynamixel2Arduino::getModelNumberIndex(uint16_t model_num)
   }else{
     for(i=0; i<model_number_table_count; i++)
     {
-      if(model_num == pgm_read_word(&model_number_table[i])){
+      if(model_num == model_number_table[i]){
         model_number_idx_last_index_ = i;
         ret = i;
         break;

@@ -28,8 +28,7 @@ class DXLPortHandler
     
     virtual void begin() = 0;
     virtual void end() = 0;
-    virtual int available(void) = 0;
-    virtual int read() = 0;
+    virtual int read(uint8_t *) = 0;
     virtual size_t write(uint8_t) = 0;
     virtual size_t write(uint8_t *buf, size_t len) = 0;
     bool getOpenState();
@@ -49,8 +48,7 @@ class SerialPortHandler : public DXLPortHandler
 
     virtual void begin() override;
     virtual void end() override;
-    virtual int available(void) override;
-    virtual int read() override;
+    virtual int read(uint8_t *) override;
     virtual size_t write(uint8_t) override;
     virtual size_t write(uint8_t *buf, size_t len) override;
 
