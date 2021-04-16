@@ -124,6 +124,7 @@ Dynamixel2Arduino::Dynamixel2Arduino(SerialDriver* port, int dir_pin, uint16_t p
   p_dxl_port_ = new SerialPortHandler(port, dir_pin);
   setPort(p_dxl_port_);
   memset(&model_number_idx_, 0xff, sizeof(model_number_idx_));
+  chMtxObjectInit(&mtx);
 }
 
 /* For Master configuration */
@@ -213,9 +214,10 @@ uint16_t Dynamixel2Arduino::getModelNumber(uint8_t id)
 {
   uint16_t model_num = 0xFFFF;
 
+  chMtxLock(&mtx);
   (void) read(id, COMMON_MODEL_NUMBER_ADDR, COMMON_MODEL_NUMBER_ADDR_LENGTH,
    (uint8_t*)&model_num, sizeof(model_num), 20);
-
+  chMtxUnlock(&mtx);
   return model_num;
 }
 
@@ -882,7 +884,9 @@ int32_t Dynamixel2Arduino::readControlTableItem(uint16_t model_num, uint8_t item
 
   if(item_info.addr_length > 0)
   {
+    chMtxLock(&mtx);
     recv_len = read(id, item_info.addr, item_info.addr_length, (uint8_t*)&ret, sizeof(ret), timeout);
+    chMtxUnlock(&mtx);
 
     if(recv_len == 1){
       int8_t t_data = (int8_t)ret;
@@ -909,7 +913,9 @@ bool Dynamixel2Arduino::writeControlTableItem(uint16_t model_num, uint8_t item_i
 
   item_info = getControlTableItemInfo(model_num, item_idx);
   if(item_info.addr_length > 0){
+    chMtxLock(&mtx);
     ret = write(id, item_info.addr, (uint8_t*)&data, item_info.addr_length, timeout);
+    chMtxUnlock(&mtx);
   }
 
   return ret;
