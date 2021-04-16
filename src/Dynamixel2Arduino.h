@@ -464,7 +464,9 @@ class Dynamixel2Arduino : public DYNAMIXEL::Master
       uint8_t item_idx, uint8_t id, uint32_t timeout = 100);
     
     bool writeControlTableItem(uint16_t model_num, 
-      uint8_t item_idx, uint8_t id, int32_t data, uint32_t timeout = 100);  
+      uint8_t item_idx, uint8_t id, int32_t data, uint32_t timeout = 100);
+
+    ch_mutex mtx;
 };
 
 
