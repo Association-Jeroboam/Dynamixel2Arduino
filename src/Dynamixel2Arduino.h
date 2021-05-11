@@ -425,6 +425,12 @@ class Dynamixel2Arduino : public DYNAMIXEL::Master
     bool writeControlTableItem(uint8_t item_idx, 
       uint8_t id, int32_t data, uint32_t timeout = 100);
 
+    bool setTorqueLimit(uint8_t id, float torqueLimit, uint8_t unit);
+    bool setMaxTorque(uint8_t id, float value, uint8_t unit);
+
+    bool setPositionPIDGain(uint8_t id, uint16_t p_gain, uint16_t i_gain, uint16_t d_gain);
+    uint8_t getHardwareError(uint8_t id);
+    bool setHardwareError(uint8_t id, uint8_t enabled_errors);
 
 #if 0 //TODO
     bool setDirectionToNormal(uint8_t id);
@@ -438,7 +444,6 @@ class Dynamixel2Arduino : public DYNAMIXEL::Master
     bool setProfileVelocity(uint8_t id, float value, uint8_t unit = UNIT_RAW);
     bool setProfileAcceleration(uint8_t id, float value, uint8_t unit = UNIT_RAW);
 
-    bool setPositionPIDGain(uint8_t id, uint16_t p_gain, uint16_t i_gain, uint16_t d_gain);
     bool setVelocityPIGain(uint8_t id, uint16_t p_gain, uint16_t i_gain);
     bool setFeedForwardGain(uint8_t id, uint16_t fisrt_gain, uint16_t second_gain);
 

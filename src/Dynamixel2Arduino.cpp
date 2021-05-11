@@ -76,6 +76,25 @@ enum Functions{
   SET_CURRENT,
   GET_CURRENT,
 
+  SET_MAX_TORQUE,
+  GET_MAX_TORQUE,
+  SET_TORQUE_LIMIT,
+  GET_TORQUE_LIMIT,
+
+
+  SET_P_GAIN,
+  GET_P_GAIN,
+  SET_I_GAIN,
+  GET_I_GAIN,
+  SET_D_GAIN,
+  GET_D_GAIN,
+
+  SET_POSITION_P_GAIN,
+  GET_POSITION_P_GAIN,
+  SET_POSITION_I_GAIN,
+  GET_POSITION_I_GAIN,
+  SET_POSITION_D_GAIN,
+  GET_POSITION_D_GAIN,
   LAST_DUMMY_FUNC = 0xFF
 };
 
@@ -815,6 +834,52 @@ bool Dynamixel2Arduino::getTorqueEnableStat(uint8_t id)
 
   return ret;
 }
+bool Dynamixel2Arduino::setTorqueLimit(uint8_t id, float value, uint8_t unit){
+    if(unit != UNIT_RAW && unit != UNIT_PERCENT)
+        return false;
+
+    return writeForRangeDependencyFunc(SET_TORQUE_LIMIT, id, value, unit);
+}
+
+bool Dynamixel2Arduino::setMaxTorque(uint8_t id, float value, uint8_t unit){
+    if(unit != UNIT_RAW && unit != UNIT_PERCENT)
+        return false;
+
+    return writeForRangeDependencyFunc(SET_MAX_TORQUE, id, value, unit);
+}
+
+bool Dynamixel2Arduino::setPositionPIDGain(uint8_t id, uint16_t p_gain, uint16_t i_gain, uint16_t d_gain){
+    bool ret = false;
+    uint16_t model_num = getModelNumberFromTable(id);
+
+    switch(model_num)
+    {
+        case XL320:
+            ret =  writeControlTableItem(ControlTableItem::P_GAIN, id, p_gain);
+            ret &= writeControlTableItem(ControlTableItem::I_GAIN, id, i_gain);
+            ret &= writeControlTableItem(ControlTableItem::D_GAIN, id, d_gain);
+            break;
+
+
+        case XL430_W250:
+            ret =  writeControlTableItem(ControlTableItem::POSITION_P_GAIN, id, p_gain);
+            ret &= writeControlTableItem(ControlTableItem::POSITION_I_GAIN, id, i_gain);
+            ret &= writeControlTableItem(ControlTableItem::POSITION_D_GAIN, id, d_gain);
+            break;
+        default:
+            break;
+    }
+
+    return ret;
+}
+
+uint8_t Dynamixel2Arduino::getHardwareError(uint8_t id){
+    return readControlTableItem(ControlTableItem::HARDWARE_ERROR_STATUS, id);
+}
+
+bool Dynamixel2Arduino::setHardwareError(uint8_t id, uint8_t enabled_errors){
+    return writeControlTableItem(ControlTableItem::SHUTDOWN, id, enabled_errors);
+}
 
 int32_t Dynamixel2Arduino::readControlTableItem(uint8_t item_idx, uint8_t id, uint32_t timeout)
 {
@@ -1001,17 +1066,18 @@ bool Dynamixel2Arduino::writeForRangeDependencyFunc(uint8_t func_idx, uint8_t id
   if(model_num != UNREGISTERED_MODEL){
     item_info = getModelDependencyFuncInfo(model_num, func_idx);
 
-    if(item_info.item_idx == ControlTableItem::LAST_DUMMY_ITEM)
-      return false;
+    if(item_info.item_idx == ControlTableItem::LAST_DUMMY_ITEM) {
+        return false;
+    }
 
-    if(checkAndconvertWriteData(value, data, unit, item_info) == false)
-      return false;
+    if(checkAndconvertWriteData(value, data, unit, item_info) == false) {
+        return false;
+    }
 
     ret = writeControlTableItem(model_num, item_info.item_idx, id, data);
   }else{
     setLastLibErrCode(D2A_LIB_ERROR_UNKNOWN_MODEL_NUMBER);
   }
-
   return ret;
 }
 
@@ -1083,8 +1149,22 @@ const ModelDependencyFuncItemAndRangeInfo_t dependency_xl320[] PROGMEM = {
   {GET_POSITION, PRESENT_POSITION, UNIT_DEGREE, 0, 1023, 0.29},
 
   {SET_VELOCITY, MOVING_SPEED, UNIT_PERCENT, 0, 2047, 0.1},
-  {GET_VELOCITY, PRESENT_SPEED, UNIT_PERCENT, 0, 2047, 0.1},  
-#endif 
+  {GET_VELOCITY, PRESENT_SPEED, UNIT_PERCENT, 0, 2047, 0.1},
+
+  {SET_MAX_TORQUE, MAX_TORQUE, UNIT_PERCENT, 0, 1023, 0.1},
+  {GET_MAX_TORQUE, MAX_TORQUE, UNIT_PERCENT, 0, 1023, 0.1},
+  {SET_TORQUE_LIMIT, TORQUE_LIMIT, UNIT_PERCENT, 0, 1023, 0.1},
+  {GET_TORQUE_LIMIT, TORQUE_LIMIT, UNIT_PERCENT, 0, 1023, 0.1},
+
+  {SET_P_GAIN, P_GAIN, UNIT_RAW, 0, 254, 1},
+  {SET_P_GAIN, P_GAIN, UNIT_RAW, 0, 254, 1},
+
+  {SET_I_GAIN, I_GAIN, UNIT_RAW, 0, 254, 1},
+  {SET_I_GAIN, I_GAIN, UNIT_RAW, 0, 254, 1},
+
+  {SET_D_GAIN, D_GAIN, UNIT_RAW, 0, 254, 1},
+  {SET_D_GAIN, D_GAIN, UNIT_RAW, 0, 254, 1},
+#endif
   {LAST_DUMMY_FUNC, ControlTableItem::LAST_DUMMY_ITEM, UNIT_RAW, 0, 0, 0}
 };
 
@@ -1095,7 +1175,6 @@ const ModelDependencyFuncItemAndRangeInfo_t dependency_ctable_2_0_common[] PROGM
   || ENABLE_ACTUATOR_MX106_PROTOCOL2 \
   || ENABLE_ACTUATOR_XL330 \
   || ENABLE_ACTUATOR_XC430 \
-  || ENABLE_ACTUATOR_XL430 \
   || ENABLE_ACTUATOR_XM430 || ENABLE_ACTUATOR_XH430 \
   || ENABLE_ACTUATOR_XM540 || ENABLE_ACTUATOR_XH540)
   {SET_POSITION, GOAL_POSITION, UNIT_DEGREE, -1048575, 1048575, 0.088},
@@ -1106,6 +1185,27 @@ const ModelDependencyFuncItemAndRangeInfo_t dependency_ctable_2_0_common[] PROGM
 
   {SET_PWM, GOAL_PWM, UNIT_RAW, -885, 885, 1},
   {GET_PWM, PRESENT_PWM, UNIT_RAW, -885, 885, 1},
+#endif
+  {LAST_DUMMY_FUNC, ControlTableItem::LAST_DUMMY_ITEM, UNIT_RAW, 0, 0, 0}
+};
+
+const ModelDependencyFuncItemAndRangeInfo_t dependency_xl430_w250[] PROGMEM = {
+#if ENABLE_ACTUATOR_XL430
+  {SET_POSITION, GOAL_POSITION, UNIT_DEGREE, -1048575, 1048575, 0.088},
+  {GET_POSITION, PRESENT_POSITION, UNIT_DEGREE, -2147483647 , 2147483647, 0.088},
+
+  {SET_VELOCITY, GOAL_VELOCITY, UNIT_RPM, -1023, 1023, 0.229},
+  {GET_VELOCITY, PRESENT_VELOCITY, UNIT_RPM, -1023, 1023, 0.229},
+
+  {SET_PWM, GOAL_PWM, UNIT_RAW, -885, 885, 1},
+  {GET_PWM, PRESENT_PWM, UNIT_RAW, -885, 885, 1},
+
+  {SET_POSITION_P_GAIN, POSITION_P_GAIN, UNIT_RAW, 0, 16383, 0},
+  {GET_POSITION_P_GAIN, POSITION_P_GAIN, UNIT_RAW, 0, 16383, 0},
+  {SET_POSITION_I_GAIN, POSITION_I_GAIN, UNIT_RAW, 0, 16383, 0},
+  {GET_POSITION_I_GAIN, POSITION_I_GAIN, UNIT_RAW, 0, 16383, 0},
+  {SET_POSITION_D_GAIN, POSITION_D_GAIN, UNIT_RAW, 0, 16383, 0},
+  {GET_POSITION_D_GAIN, POSITION_D_GAIN, UNIT_RAW, 0, 16383, 0},
 #endif
   {LAST_DUMMY_FUNC, ControlTableItem::LAST_DUMMY_ITEM, UNIT_RAW, 0, 0, 0}
 };
@@ -1406,12 +1506,13 @@ static ItemAndRangeInfo_t getModelDependencyFuncInfo(uint16_t model_num, uint8_t
     case XL320:
       p_common_ctable = dependency_xl320;
       break;
-
+    case XL430_W250:
+      p_common_ctable = dependency_xl430_w250;
+      break;
     case MX28_2:
     case XC430_W150:
     case XC430_W240:
     case XXC430_W250:
-    case XL430_W250:
     case XXL430_W250:
       p_common_ctable = dependency_ctable_2_0_common;
       break;
