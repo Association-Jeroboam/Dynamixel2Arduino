@@ -48,6 +48,18 @@ enum D2ALibErrorCode
   D2A_LIB_ERROR_UNKNOWN_MODEL_NUMBER
 };
 
+enum LedColor
+{
+    LED_OFF    = 0,
+    LED_RED    = 1,
+    LED_GREEN  = 2,
+    LED_BLUE   = 4,
+    LED_YELLOW = 3,
+    LED_CYAN   = 6,
+    LED_PURPLE = 5,
+    LED_WHITE  = 7,
+};
+
 class Dynamixel2Arduino : public DYNAMIXEL::Master
 {
   public:
@@ -219,7 +231,7 @@ class Dynamixel2Arduino : public DYNAMIXEL::Master
      * @param id DYNAMIXEL Actuator's ID.
      * @return It returns true(1) on success, false(0) on failure.
      */
-    bool ledOn(uint8_t id);
+    bool ledOn(uint8_t id, enum LedColor color = LED_RED);
 
      /**
      * @brief It is API for controlling LED(turn off) of DYNAMIXEL.
@@ -460,7 +472,7 @@ class Dynamixel2Arduino : public DYNAMIXEL::Master
     uint16_t getModelNumberFromTable(uint8_t id);
 
     bool setTorqueEnable(uint8_t id, bool enable);
-    bool setLedState(uint8_t id, bool state);
+    bool setLedState(uint8_t id, enum LedColor color);
 
     float readForRangeDependencyFunc(uint8_t func_idx, uint8_t id, uint8_t unit);
     bool writeForRangeDependencyFunc(uint8_t func_idx, uint8_t id, float value, uint8_t unit);

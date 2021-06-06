@@ -522,17 +522,17 @@ bool Dynamixel2Arduino::setTorqueEnable(uint8_t id, bool enable)
   return writeControlTableItem(ControlTableItem::TORQUE_ENABLE, id, enable);
 }
 
-bool Dynamixel2Arduino::ledOn(uint8_t id)
+bool Dynamixel2Arduino::ledOn(uint8_t id, enum LedColor color)
 {
-  return setLedState(id, true);
+  return setLedState(id, color);
 }
 
 bool Dynamixel2Arduino::ledOff(uint8_t id)
 {
-  return setLedState(id, false);
+  return setLedState(id, LED_OFF);
 }
 
-bool Dynamixel2Arduino::setLedState(uint8_t id, bool state)
+bool Dynamixel2Arduino::setLedState(uint8_t id,  enum LedColor color)
 {
   bool ret = false;
   uint16_t model_num = getModelNumberFromTable(id);
@@ -562,11 +562,11 @@ bool Dynamixel2Arduino::setLedState(uint8_t id, bool state)
     case PRO_M42P_010_S260_R:
     case PRO_M54P_040_S250_R:
     case PRO_M54P_060_S250_R:
-      ret = writeControlTableItem(ControlTableItem::LED_RED, id, state);
+      ret = writeControlTableItem(ControlTableItem::LED, id, color);
       break;
 
     default:
-      ret = writeControlTableItem(ControlTableItem::LED, id, state);
+      ret = writeControlTableItem(ControlTableItem::LED, id, color);
       break;
   }
 
